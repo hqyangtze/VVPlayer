@@ -56,7 +56,7 @@ typedef void(^VVEventEndCall)(BOOL isFullScreen,VVEventType eventType);
 /**
  视频画面显示模式
  */
-@property (nonatomic, assign) AVLayerVideoGravity videoGravity;///< 视频显示模式
+@property (nonatomic, copy) AVLayerVideoGravity videoGravity;///< 视频显示模式
 
 /**
  预留字段，可以根据该字段修改播放器的交互逻辑

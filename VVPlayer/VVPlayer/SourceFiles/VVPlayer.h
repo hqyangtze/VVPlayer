@@ -79,7 +79,7 @@ typedef NS_ENUM(int, VVPlayEvent) {
 /**
  视频画面显示模式
  */
-@property (nonatomic, assign) AVLayerVideoGravity videoGravity;///< 视频显示模式
+@property (nonatomic, copy) AVLayerVideoGravity videoGravity;///< 视频显示模式
 
 /**
  播放结束时需要停留在最后一帧 default: NO

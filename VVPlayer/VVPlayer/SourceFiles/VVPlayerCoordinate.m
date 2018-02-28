@@ -225,7 +225,6 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
 }
 
 #pragma mark - private function
-
 - (void)addNotificationObservers{
     [self removeNotificationObservers];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_vvNetwotkReachabilityChanged:) name:KNetworkMonitorTypeChangedNotification object:nil];
