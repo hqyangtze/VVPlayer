@@ -9,8 +9,5 @@
 #import <UIKit/UIKit.h>
 
 @interface VVSliderView : UISlider
-
-
 @property (nonatomic, assign)CGFloat cacheValue;
-
 @end

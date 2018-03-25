@@ -128,6 +128,7 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
     if (self.isPlaying || (self.manualPauseCout > 1)) {
         return;
     }
+    
     _isPlayEnd = NO;
     _noReadyToPlayWhenWillEnterForeground = NO;
     [_player play];
