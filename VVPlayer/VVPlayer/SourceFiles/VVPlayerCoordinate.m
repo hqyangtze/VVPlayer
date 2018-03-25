@@ -374,6 +374,14 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
     [self skinViewPerformSEL:@selector(setIsMuted:) params:@[@(self.isMuted)]];
 }
 
+- (void)setForcedMuted:(BOOL)forcedMuted{
+    _forcedMuted = forcedMuted;
+    
+    if (forcedMuted) {
+        self.isMuted = YES;
+    }
+}
+
 - (void)setVideoGravity:(AVLayerVideoGravity )videoGravity{
     NSArray* options = @[AVLayerVideoGravityResizeAspectFill,AVLayerVideoGravityResizeAspect,AVLayerVideoGravityResize];
     if ([options containsObject:videoGravity] && (_videoGravity != videoGravity)) {
