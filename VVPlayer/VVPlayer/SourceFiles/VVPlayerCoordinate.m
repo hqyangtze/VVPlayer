@@ -46,8 +46,8 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
 
 - (void)startWithURLString:(NSString* )URLString sourceId:(NSString* )sourceId{
     if (!vv_validString(URLString)) {///链接错误
-        [self skinViewPerformSEL:@selector(hidenLoading) params:nil];
-        [self skinViewPerformSEL:@selector(showContentLost) params:nil];
+        [self skinViewPerformSelectorWithArgs:@selector(hidenLoading)];
+        [self skinViewPerformSelectorWithArgs:@selector(showContentLost)];
         return;
     }
     
@@ -56,29 +56,29 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
     self.currentURLString = URLString;
     self.vvPlayer = [[VVPlayer alloc] initWithURLString:URLString];
     [self _vvConfiguratePlayer];
-    [self skinViewPerformSEL:@selector(showLoading) params:nil];
+    [self skinViewPerformSelectorWithArgs:@selector(showLoading)];
     [self addNotificationObservers];
     [self checkNetworkEnrimoentAndToastInfo];
-    [self skinViewPerformSEL:@selector(setIsMuted:) params:@[@(self.isMuted)]];
+    [self skinViewPerformSelectorWithArgs:@selector(setIsMuted:),(self.isMuted)];
     [self _vvSendPlayEventEndEventWithType:VVEventTypeLoadURL];
 }
 
 - (void)play{
     [self.vvPlayer play];
-    [self skinViewPerformSEL:@selector(showPlayingView) params:nil];
+    [self skinViewPerformSelectorWithArgs:@selector(showPlayingView)];
     [self _vvSendPlayEventEndEventWithType:VVEventTypePlay];
 }
 
 - (void)pause{
     [self.vvPlayer pause];
-    [self skinViewPerformSEL:@selector(hidenLoading) params:nil];
-    [self skinViewPerformSEL:@selector(showPauseView) params:nil];
+    [self skinViewPerformSelectorWithArgs:@selector(hidenLoading)];
+    [self skinViewPerformSelectorWithArgs:@selector(showPauseView)];
     [self _vvSendPlayEventEndEventWithType:VVEventTypePause];
 }
 
 - (void)replay{
-    [self skinViewPerformSEL:@selector(setInteractiveEnabled:) params:@[@(NO)]];
-    [self skinViewPerformSEL:@selector(updateProgressValue:videoDuration:) params:@[@(0.0),@(self.totalDuration)]];
+    [self skinViewPerformSelectorWithArgs:@selector(setInteractiveEnabled:),NO];
+    [self skinViewPerformSelectorWithArgs:@selector(updateProgressValue:videoDuration:),0.0,self.totalDuration];
     [self _destoryCurrentPlayer];
     
     [VVRecordPlayTime removePlayDuration:self.sourceId];
@@ -133,7 +133,7 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
     self.vvPlayer.playerView.frame = CGRectMake(0, 0, 160, 90);
     self.playerView = self.vvPlayer.playerView;
     if (self.playerView) {
-        [self skinViewPerformSEL:@selector(setPlayerView:) params:@[self.playerView]];
+        [self skinViewPerformSelectorWithArgs:@selector(setPlayerView:),self.playerView];
     }
 }
 
@@ -144,21 +144,20 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
     }else if (playerEvent == VVPlayEventReadyToPlay){//资源非第一次加载好
         [self play];
     }else if (playerEvent == VVPlayEventCacheChanged){//缓存发生改变
-        [self skinViewPerformSEL:@selector(updateCacheValue:videoDuration:)
-                          params:@[@(self.vvPlayer.hasLoadedDuration),@(self.vvPlayer.totalDuration)]];
+        [self skinViewPerformSelectorWithArgs:@selector(updateCacheValue:videoDuration:),self.vvPlayer.hasLoadedDuration,self.vvPlayer.totalDuration];
     }else if (playerEvent == VVPlayEventSeekStart){//开始seek
         if (vv_networkStatus() == VVNetWorkUnable) {
-            [self skinViewPerformSEL:@selector(hidenLoading) params:nil];
-            [self skinViewPerformSEL:@selector(showPauseView) params:nil];
-            [self skinViewPerformSEL:@selector(showContentError) params:nil];
+            [self skinViewPerformSelectorWithArgs:@selector(hidenLoading)];
+            [self skinViewPerformSelectorWithArgs:@selector(showPauseView)];
+            [self skinViewPerformSelectorWithArgs:@selector(showContentError)];
         }else {
-            [self skinViewPerformSEL:@selector(showLoading) params:nil];
+            [self skinViewPerformSelectorWithArgs:@selector(showLoading)];
         }
     }else if (playerEvent == VVPlayEventSeekEnd){//结束seek
-        [self skinViewPerformSEL:@selector(hidenLoading) params:nil];
+        [self skinViewPerformSelectorWithArgs:@selector(hidenLoading)];
     }else if (playerEvent == VVPlayEventEnd){//播放结束
-        [self skinViewPerformSEL:@selector(hidenLoading) params:nil];
-        [self skinViewPerformSEL:@selector(showFinishedView) params:nil];
+        [self skinViewPerformSelectorWithArgs:@selector(hidenLoading)];
+        [self skinViewPerformSelectorWithArgs:@selector(showFinishedView)];
         [self _vvSendPlayEventEndEventWithType:VVEventTypePlayEnd];
     }else if (playerEvent == VVPlayEventError){//播放出错
         [self toastErrorViewBaseNetworkEnvironment];
@@ -169,7 +168,7 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
 - (void)playerProgress:(CGFloat)position duration:(CGFloat)duration{
     self.currentPlayDuration = position;
     self.totalDuration = duration;
-    [self skinViewPerformSEL:@selector(updateProgressValue:videoDuration:) params:@[@(position),@(duration)]];
+    [self skinViewPerformSelectorWithArgs:@selector(updateProgressValue:videoDuration:),position,duration];
 }
 
 #pragma mark - VVPlayerSkinDelegate
@@ -199,11 +198,11 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
 
 /// 播放过程中，网络出错，尝试重新加载
 - (void)reload:(UIView<VVPlayerSkinProtocol> *)skinView{
-    [self skinViewPerformSEL:@selector(showLoading) params:nil];
+    [self skinViewPerformSelectorWithArgs:@selector(showLoading)];
     if (vv_networkStatus() == VVNetWorkUnable) {
         dispatch_async_on_main_queue(^{
-            [self skinViewPerformSEL:@selector(hidenLoading) params:nil];
-            [self skinViewPerformSEL:@selector(showContentError) params:nil];
+            [self skinViewPerformSelectorWithArgs:@selector(hidenLoading)];
+            [self skinViewPerformSelectorWithArgs:@selector(showContentError)];
         });
         return;
     }else{
@@ -238,12 +237,12 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
 
 - (void)_vvNetwotkReachabilityChanged:(NSNotification *)notification{
     if (vv_networkStatus() > VVNetWorkWiFi) {//非wifi
-        [self skinViewPerformSEL:@selector(showNotWifiToast) params:nil];
+        [self skinViewPerformSelectorWithArgs:@selector(showNotWifiToast)];
         [self pause];
     }
     if (vv_networkStatus() == VVNetWorkUnable) {// 无网络
         [self pause];
-        [self skinViewPerformSEL:@selector(showContentError) params:nil];
+        [self skinViewPerformSelectorWithArgs:@selector(showContentError)];
     }
 }
 
@@ -255,9 +254,8 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
 
 - (void)_vvPlayEventPrepareDoneEvent{
     self.totalDuration = _vvPlayer.totalDuration;
-    [self skinViewPerformSEL:@selector(setInteractiveEnabled:) params:@[@(YES)]];
-    [self skinViewPerformSEL:@selector(updateProgressValue:videoDuration:)
-                       params:@[@(self.vvPlayer.currentPlayTime),@(self.totalDuration)]];
+    [self skinViewPerformSelectorWithArgs:@selector(setInteractiveEnabled:),YES];
+    [self skinViewPerformSelectorWithArgs:@selector(updateProgressValue:videoDuration:),self.vvPlayer.currentPlayTime,self.totalDuration];
     
     long long seekToDuration = [[VVRecordPlayTime playDuration:self.sourceId] longLongValue];
     if (seekToDuration > 0) {
@@ -285,17 +283,17 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
 }
 
 - (void)toastErrorViewBaseNetworkEnvironment{
-    [self skinViewPerformSEL:@selector(hidenLoading) params:nil];
+    [self skinViewPerformSelectorWithArgs:@selector(hidenLoading)];
     if (vv_networkStatus() == VVNetWorkUnable) {
-        [self skinViewPerformSEL:@selector(showContentError) params:nil];
+        [self skinViewPerformSelectorWithArgs:@selector(showContentError)];
     }else{
-        [self skinViewPerformSEL:@selector(showContentLost) params:nil];
+        [self skinViewPerformSelectorWithArgs:@selector(showContentLost)];
     }
 }
 
 - (void)checkNetworkEnrimoentAndToastInfo{
     if (vv_networkStatus() > VVNetWorkWiFi) {
-        [self skinViewPerformSEL:@selector(showNotWifiToast) params:nil];
+        [self skinViewPerformSelectorWithArgs:@selector(showNotWifiToast)];
     }
 }
 
@@ -314,7 +312,7 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
 }
 
 - (void)_vvSendPlayEventEndEventWithType:(VVEventType) eventType{
-    id temValue = [self skinViewPerformSEL:@selector(isFullScreen) params:nil];
+    id temValue = [self skinViewPerformSelectorWithArgs:@selector(isFullScreen)];
     BOOL isFullScreenn = temValue ? [temValue boolValue] : NO;
     !self.eventEndCall ? : self.eventEndCall(isFullScreenn,eventType);
 }
@@ -357,9 +355,9 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
 - (void)setSkinView:(UIView<VVPlayerSkinProtocol> *)skinView{
     if (_skinView != skinView) {
         _skinView = skinView;
-        [self skinViewPerformSEL:@selector(setViewDelegate:) params:@[self]];
+        [self skinViewPerformSelectorWithArgs:@selector(setViewDelegate:),self];
         if (self.playerView) {
-            [self skinViewPerformSEL:@selector(setPlayerView:) params:@[self.playerView]];
+            [self skinViewPerformSelectorWithArgs:@selector(setPlayerView:),self.playerView];
         }
     }
 }
@@ -371,7 +369,7 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
     }
     
     _vvPlayer.muted = _isMuted;
-    [self skinViewPerformSEL:@selector(setIsMuted:) params:@[@(self.isMuted)]];
+    [self skinViewPerformSelectorWithArgs:@selector(setIsMuted:),self.isMuted];
 }
 
 - (void)setForcedMuted:(BOOL)forcedMuted{
@@ -407,106 +405,269 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
     return NO;
 }
 
-//MARK: - Helper function
-- (id)skinViewPerformSEL:(SEL)selector params:(NSArray *)objects{
+
+- (id)skinViewPerformSelectorWithArgs:(SEL)sel, ...{
     if ([self.skinView conformsToProtocol:@protocol(VVPlayerSkinProtocol)]
-        && [self.skinView respondsToSelector:selector]) {
+        && [self.skinView respondsToSelector:sel]) {
         
-        NSMethodSignature *signature = [[self.skinView class] instanceMethodSignatureForSelector:selector];
-        if (signature == nil) {
-            return nil;
-        }
-        NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
-        invocation.target = self.skinView;
-        invocation.selector = selector;
-        
-        NSInteger paramsCount = signature.numberOfArguments - 2; // 除self、_cmd以外的参数个数
-        paramsCount = MIN(paramsCount, objects.count);
-        for (NSInteger i = 0; i < paramsCount; i++) {
-            id object = objects[i];
-            
-            if ([object isKindOfClass:[NSNull class]]) continue;
-            
-            NSInteger index = i + 2;
-            const char* argumentType = [signature getArgumentTypeAtIndex:index];
-            
-            if (strcmp(argumentType, "s") == 0) {//short
-                short value = [object shortValue];
-                [invocation setArgument:&value atIndex:index];
-                
-            }else if(strcmp(argumentType, "l") == 0) {//long
-                long value = [object longValue];
-                [invocation setArgument:&value atIndex:index];
-                
-            }else if(strcmp(argumentType, "q") == 0) {//long long
-                long long value = [object longLongValue];
-                [invocation setArgument:&value atIndex:index];
-                
-            }else if(strcmp(argumentType, "f") == 0) {//float
-                float value = [object floatValue];
-                [invocation setArgument:&value atIndex:index];
-                
-            }else if(strcmp(argumentType, "d") == 0) {//double
-                double value = [object doubleValue];
-                [invocation setArgument:&value atIndex:index];
-                
-            }else if(strcmp(argumentType, "B") == 0) {//BOOL
-                BOOL value = [object boolValue];
-                [invocation setArgument:&value atIndex:index];
-                
-            }else if(strcmp(argumentType, "{") == 0) {//struct
-                
-            }else{
-                [invocation setArgument:&object atIndex:index];
-            }
-        }
-        
-        [invocation invoke];
-        
-        id returnValue = nil;
-        const char* returnType = signature.methodReturnType;
-        
-        if (signature.methodReturnLength) {
-            if (strcmp(returnType, "s") == 0) {//short
-                short value = 0;
-                [invocation getReturnValue:&value];
-                returnValue = [NSNumber numberWithShort:value];
-                
-            }else if(strcmp(returnType, "l") == 0) {//long
-                long value = 0;
-                [invocation getReturnValue:&value];
-                returnValue = [NSNumber numberWithLong:value];
-                
-            }else if(strcmp(returnType, "q") == 0) {//long long
-                long long value = 0;
-                [invocation getReturnValue:&value];
-                returnValue = [NSNumber numberWithLongLong:value];
-                
-            }else if(strcmp(returnType, "f") == 0) {//float
-                float value = 0.0;
-                [invocation getReturnValue:&value];
-                returnValue = [NSNumber numberWithFloat:value];
-                
-            }else if(strcmp(returnType, "d") == 0) {//double
-                double value = 0.0;
-                [invocation getReturnValue:&value];
-                returnValue = [NSNumber numberWithDouble:value];
-                
-            }else if(strcmp(returnType, "B") == 0) {//BOOL
-                BOOL value = NO;
-                [invocation getReturnValue:&value];
-                returnValue = [NSNumber numberWithBool:value];
-                
-            }else if(strcmp(returnType, "{") == 0) {//struct
-                
-            }else{
-                [invocation getReturnValue:&returnValue];
-            }
-        }
-        
-        return returnValue;
+        NSMethodSignature * sig = [self.skinView methodSignatureForSelector:sel];
+        if (!sig) { [self.skinView doesNotRecognizeSelector:sel]; return nil; }
+        NSInvocation *inv = [NSInvocation invocationWithMethodSignature:sig];
+        if (!inv) { [self.skinView doesNotRecognizeSelector:sel]; return nil; }
+        [inv setTarget:self.skinView];
+        [inv setSelector:sel];
+        va_list args;
+        va_start(args, sel);
+        [[self class] setInv:inv withSig:sig andArgs:args];
+        va_end(args);
+        [inv invoke];
+        return [[self class] getReturnFromInv:inv withSig:sig];
     }
     return nil;
 }
 
++ (id)getReturnFromInv:(NSInvocation *)inv withSig:(NSMethodSignature *)sig {
+    NSUInteger length = [sig methodReturnLength];
+    if (length == 0) return nil;
+    
+    char *type = (char *)[sig methodReturnType];
+    while (*type == 'r' || // const
+           *type == 'n' || // in
+           *type == 'N' || // inout
+           *type == 'o' || // out
+           *type == 'O' || // bycopy
+           *type == 'R' || // byref
+           *type == 'V') { // oneway
+        type++; // cutoff useless prefix
+    }
+    
+#define return_with_number(_type_) \
+do { \
+_type_ ret; \
+[inv getReturnValue:&ret]; \
+return @(ret); \
+} while (0)
+    
+    switch (*type) {
+        case 'v': return nil; // void
+        case 'B': return_with_number(bool);
+        case 'c': return_with_number(char);
+        case 'C': return_with_number(unsigned char);
+        case 's': return_with_number(short);
+        case 'S': return_with_number(unsigned short);
+        case 'i': return_with_number(int);
+        case 'I': return_with_number(unsigned int);
+        case 'l': return_with_number(int);
+        case 'L': return_with_number(unsigned int);
+        case 'q': return_with_number(long long);
+        case 'Q': return_with_number(unsigned long long);
+        case 'f': return_with_number(float);
+        case 'd': return_with_number(double);
+        case 'D': { // long double
+            long double ret;
+            [inv getReturnValue:&ret];
+            return [NSNumber numberWithDouble:ret];
+        };
+            
+        case '@': { // id
+            void *ret;
+            [inv getReturnValue:&ret];
+            return (__bridge id)(ret);
+        };
+            
+        case '#': { // Class
+            Class ret = nil;
+            [inv getReturnValue:&ret];
+            return ret;
+        };
+            
+        default: { // struct / union / SEL / void* / unknown
+            const char *objCType = [sig methodReturnType];
+            char *buf = calloc(1, length);
+            if (!buf) return nil;
+            [inv getReturnValue:buf];
+            NSValue *value = [NSValue valueWithBytes:buf objCType:objCType];
+            free(buf);
+            return value;
+        };
+    }
+#undef return_with_number
+}
+
++ (void)setInv:(NSInvocation *)inv withSig:(NSMethodSignature *)sig andArgs:(va_list)args {
+    NSUInteger count = [sig numberOfArguments];
+    for (int index = 2; index < count; index++) {
+        char *type = (char *)[sig getArgumentTypeAtIndex:index];
+        while (*type == 'r' || // const
+               *type == 'n' || // in
+               *type == 'N' || // inout
+               *type == 'o' || // out
+               *type == 'O' || // bycopy
+               *type == 'R' || // byref
+               *type == 'V') { // oneway
+            type++; // cutoff useless prefix
+        }
+        
+        BOOL unsupportedType = NO;
+        switch (*type) {
+            case 'v': // 1: void
+            case 'B': // 1: bool
+            case 'c': // 1: char / BOOL
+            case 'C': // 1: unsigned char
+            case 's': // 2: short
+            case 'S': // 2: unsigned short
+            case 'i': // 4: int / NSInteger(32bit)
+            case 'I': // 4: unsigned int / NSUInteger(32bit)
+            case 'l': // 4: long(32bit)
+            case 'L': // 4: unsigned long(32bit)
+            { // 'char' and 'short' will be promoted to 'int'.
+                int arg = va_arg(args, int);
+                [inv setArgument:&arg atIndex:index];
+            } break;
+                
+            case 'q': // 8: long long / long(64bit) / NSInteger(64bit)
+            case 'Q': // 8: unsigned long long / unsigned long(64bit) / NSUInteger(64bit)
+            {
+                long long arg = va_arg(args, long long);
+                [inv setArgument:&arg atIndex:index];
+            } break;
+                
+            case 'f': // 4: float / CGFloat(32bit)
+            { // 'float' will be promoted to 'double'.
+                double arg = va_arg(args, double);
+                float argf = arg;
+                [inv setArgument:&argf atIndex:index];
+            } break;
+                
+            case 'd': // 8: double / CGFloat(64bit)
+            {
+                double arg = va_arg(args, double);
+                [inv setArgument:&arg atIndex:index];
+            } break;
+                
+            case 'D': // 16: long double
+            {
+                long double arg = va_arg(args, long double);
+                [inv setArgument:&arg atIndex:index];
+            } break;
+                
+            case '*': // char *
+            case '^': // pointer
+            {
+                void *arg = va_arg(args, void *);
+                [inv setArgument:&arg atIndex:index];
+            } break;
+                
+            case ':': // SEL
+            {
+                SEL arg = va_arg(args, SEL);
+                [inv setArgument:&arg atIndex:index];
+            } break;
+                
+            case '#': // Class
+            {
+                Class arg = va_arg(args, Class);
+                [inv setArgument:&arg atIndex:index];
+            } break;
+                
+            case '@': // id
+            {
+                id arg = va_arg(args, id);
+                [inv setArgument:&arg atIndex:index];
+            } break;
+                
+            case '{': // struct
+            {
+                if (strcmp(type, @encode(CGPoint)) == 0) {
+                    CGPoint arg = va_arg(args, CGPoint);
+                    [inv setArgument:&arg atIndex:index];
+                } else if (strcmp(type, @encode(CGSize)) == 0) {
+                    CGSize arg = va_arg(args, CGSize);
+                    [inv setArgument:&arg atIndex:index];
+                } else if (strcmp(type, @encode(CGRect)) == 0) {
+                    CGRect arg = va_arg(args, CGRect);
+                    [inv setArgument:&arg atIndex:index];
+                } else if (strcmp(type, @encode(CGVector)) == 0) {
+                    CGVector arg = va_arg(args, CGVector);
+                    [inv setArgument:&arg atIndex:index];
+                } else if (strcmp(type, @encode(CGAffineTransform)) == 0) {
+                    CGAffineTransform arg = va_arg(args, CGAffineTransform);
+                    [inv setArgument:&arg atIndex:index];
+                } else if (strcmp(type, @encode(CATransform3D)) == 0) {
+                    CATransform3D arg = va_arg(args, CATransform3D);
+                    [inv setArgument:&arg atIndex:index];
+                } else if (strcmp(type, @encode(NSRange)) == 0) {
+                    NSRange arg = va_arg(args, NSRange);
+                    [inv setArgument:&arg atIndex:index];
+                } else if (strcmp(type, @encode(UIOffset)) == 0) {
+                    UIOffset arg = va_arg(args, UIOffset);
+                    [inv setArgument:&arg atIndex:index];
+                } else if (strcmp(type, @encode(UIEdgeInsets)) == 0) {
+                    UIEdgeInsets arg = va_arg(args, UIEdgeInsets);
+                    [inv setArgument:&arg atIndex:index];
+                } else {
+                    unsupportedType = YES;
+                }
+            } break;
+                
+            case '(': // union
+            {
+                unsupportedType = YES;
+            } break;
+                
+            case '[': // array
+            {
+                unsupportedType = YES;
+            } break;
+                
+            default: // what?!
+            {
+                unsupportedType = YES;
+            } break;
+        }
+        
+        if (unsupportedType) {
+            // Try with some dummy type...
+            
+            NSUInteger size = 0;
+            NSGetSizeAndAlignment(type, &size, NULL);
+            
+#define case_size(_size_) \
+else if (size <= 4 * _size_ ) { \
+struct dummy { char tmp[4 * _size_]; }; \
+struct dummy arg = va_arg(args, struct dummy); \
+[inv setArgument:&arg atIndex:index]; \
+}
+            if (size == 0) { }
+            case_size( 1) case_size( 2) case_size( 3) case_size( 4)
+            case_size( 5) case_size( 6) case_size( 7) case_size( 8)
+            case_size( 9) case_size(10) case_size(11) case_size(12)
+            case_size(13) case_size(14) case_size(15) case_size(16)
+            case_size(17) case_size(18) case_size(19) case_size(20)
+            case_size(21) case_size(22) case_size(23) case_size(24)
+            case_size(25) case_size(26) case_size(27) case_size(28)
+            case_size(29) case_size(30) case_size(31) case_size(32)
+            case_size(33) case_size(34) case_size(35) case_size(36)
+            case_size(37) case_size(38) case_size(39) case_size(40)
+            case_size(41) case_size(42) case_size(43) case_size(44)
+            case_size(45) case_size(46) case_size(47) case_size(48)
+            case_size(49) case_size(50) case_size(51) case_size(52)
+            case_size(53) case_size(54) case_size(55) case_size(56)
+            case_size(57) case_size(58) case_size(59) case_size(60)
+            case_size(61) case_size(62) case_size(63) case_size(64)
+            else {
+                /*
+                 Larger than 256 byte?! I don't want to deal with this stuff up...
+                 Ignore this argument.
+                 */
+                struct dummy {char tmp;};
+                for (int i = 0; i < size; i++) va_arg(args, struct dummy);
+                NSLog(@"YYKit performSelectorWithArgs unsupported type:%s (%lu bytes)",
+                      [sig getArgumentTypeAtIndex:index],(unsigned long)size);
+            }
+#undef case_size
+            
+        }
+    }
+}
 @end
