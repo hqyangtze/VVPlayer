@@ -19,6 +19,7 @@
 		05BE9CE41FE6382600B25C4B /* VVSkinView.m in Sources */ = {isa = PBXBuildFile; fileRef = 05BE9CE31FE6382600B25C4B /* VVSkinView.m */; };
 		05BE9CE71FE63A9B00B25C4B /* VVSliderView.m in Sources */ = {isa = PBXBuildFile; fileRef = 05BE9CE61FE63A9B00B25C4B /* VVSliderView.m */; };
 		05BE9CEA1FE63B3500B25C4B /* UIView+Geometry.m in Sources */ = {isa = PBXBuildFile; fileRef = 05BE9CE91FE63B3500B25C4B /* UIView+Geometry.m */; };
+		724214D85CDEEC922A358947 /* libPods-VVPlayer.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 435E86CCCAFFD469D5E4760B /* libPods-VVPlayer.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -49,6 +50,9 @@
 		05BE9CE81FE63B3500B25C4B /* UIView+Geometry.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "UIView+Geometry.h"; sourceTree = "<group>"; };
 		05BE9CE91FE63B3500B25C4B /* UIView+Geometry.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "UIView+Geometry.m"; sourceTree = "<group>"; };
 		05BE9CEC1FE6436D00B25C4B /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
+		435E86CCCAFFD469D5E4760B /* libPods-VVPlayer.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-VVPlayer.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		AF64EDE5819A31C461256174 /* Pods-VVPlayer.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-VVPlayer.release.xcconfig"; path = "Pods/Target Support Files/Pods-VVPlayer/Pods-VVPlayer.release.xcconfig"; sourceTree = "<group>"; };
+		E50184101590826D8D7FE4BA /* Pods-VVPlayer.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-VVPlayer.debug.xcconfig"; path = "Pods/Target Support Files/Pods-VVPlayer/Pods-VVPlayer.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,6 +60,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				724214D85CDEEC922A358947 /* libPods-VVPlayer.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -67,6 +72,8 @@
 			children = (
 				05BE9CBC1FE4FAC600B25C4B /* VVPlayer */,
 				05BE9CBB1FE4FAC600B25C4B /* Products */,
+				780BF7361F5DF3E8CAB888F9 /* Pods */,
+				31E99EC4B63EE6F0A25B4838 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -126,6 +133,23 @@
 			path = Demo;
 			sourceTree = "<group>";
 		};
+		31E99EC4B63EE6F0A25B4838 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				435E86CCCAFFD469D5E4760B /* libPods-VVPlayer.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		780BF7361F5DF3E8CAB888F9 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				E50184101590826D8D7FE4BA /* Pods-VVPlayer.debug.xcconfig */,
+				AF64EDE5819A31C461256174 /* Pods-VVPlayer.release.xcconfig */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -133,9 +157,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 05BE9CD01FE4FAC600B25C4B /* Build configuration list for PBXNativeTarget "VVPlayer" */;
 			buildPhases = (
+				ABB656C9FB0BA1F9EED2B22E /* [CP] Check Pods Manifest.lock */,
 				05BE9CB61FE4FAC600B25C4B /* Sources */,
 				05BE9CB71FE4FAC600B25C4B /* Frameworks */,
 				05BE9CB81FE4FAC600B25C4B /* Resources */,
+				B7DB8C36196F84E705B90C38 /* [CP] Embed Pods Frameworks */,
+				39A65CD02F30C4960373A473 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -191,6 +218,60 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		39A65CD02F30C4960373A473 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${SRCROOT}/Pods/Target Support Files/Pods-VVPlayer/Pods-VVPlayer-resources.sh",
+				"${PODS_ROOT}/MJRefresh/MJRefresh/MJRefresh.bundle",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-VVPlayer/Pods-VVPlayer-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		ABB656C9FB0BA1F9EED2B22E /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-VVPlayer-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		B7DB8C36196F84E705B90C38 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-VVPlayer/Pods-VVPlayer-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		05BE9CB61FE4FAC600B25C4B /* Sources */ = {
@@ -338,6 +419,7 @@
 		};
 		05BE9CD11FE4FAC600B25C4B /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = E50184101590826D8D7FE4BA /* Pods-VVPlayer.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
@@ -353,6 +435,7 @@
 		};
 		05BE9CD21FE4FAC600B25C4B /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = AF64EDE5819A31C461256174 /* Pods-VVPlayer.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
