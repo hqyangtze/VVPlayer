@@ -147,6 +147,8 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
 }
 
 - (void)destory{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    
     if (_player) {
         [self pause];
         [self endPeriodDateStatistics];
@@ -155,7 +157,6 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
         [self _vvRemovePlayerTimeObserver];
         _videoOutput= nil;
         _player = nil;
-        [[NSNotificationCenter defaultCenter] removeObserver:self];
         _vvSetAudioSession(YES, s_originCategory,s_originCategoryOption);
     }
 }
