@@ -16,6 +16,7 @@ static NSString* const kStatus = @"status";
 static NSString* const kLoadedTimeRanges = @"loadedTimeRanges";
 static NSString* const kPlaybackLikelyToKeepUp = @"playbackLikelyToKeepUp";
 static NSString* const kPlaybackBufferEmpty = @"playbackBufferEmpty";
+static NSString* const kPresentationSize = @"presentationSize";
 
 static CGFloat s_volume  = 0.5;//记录用户设置的音量
 static const NSUInteger s_kLoginOffset  = 1;
@@ -107,8 +108,8 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
     if (self = [super init]) {
         _assetURL = [NSURL URLWithString:urlString];
         _playStatus = VVPlayStatusUnknow;
-        _pauseWhenLogin = YES;
-        _pauseWhenResignActive = YES;
+        _pauseWhenShowLoginView = YES;
+        _pauseWhenAPPResignActive = YES;
         _reversePlaybackEnd = NO;
         _needLastFrame = NO;
         _manualPauseCout = 1;
@@ -219,6 +220,8 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
     }else if ([keyPath isEqualToString:kPlaybackBufferEmpty]) {
         self.playStatus = VVPlayStatusSeeking;
         [self _vvSendDelegateEvent:VVPlayEventSeekStart];
+    }else if([keyPath isEqualToString:kPresentationSize]){
+        [self _vvSendDelegateEvent:VVPlayEventPresentationSize];
     }else{
         [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
     }
@@ -268,6 +271,107 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
     }
 }
 
+- (void)n_playerItemNewAccessLogEntryNotification:(NSNotification *)notification{
+    AVPlayerItem* obj = notification.object;
+    if ([obj isKindOfClass:[AVPlayerItem class]]) {
+        if (obj != _playerItem) {
+            return;
+        }
+    }
+    
+    AVPlayerItemAccessLog* accessLog = [obj accessLog];
+    NSString* accessLogString = [[NSString alloc] initWithData:[accessLog extendedLogData] encoding:[accessLog extendedLogDataStringEncoding]];
+    NSLog(@"\n\nAVPlayerItem.accessLogString Begin\n");
+    NSLog(@"%@",accessLogString);
+    NSLog(@"\nAVPlayerItem.accessLogString End\n\n");
+    
+    NSArray<AVPlayerItemAccessLogEvent*>* events = [accessLog events];
+    [events enumerateObjectsUsingBlock:^(AVPlayerItemAccessLogEvent * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        NSLog(@"AVPlayerItem.accessLogEvent: \n %@",[self vvAVPlayerItemAccessLogEventInfo:obj]);
+    }];
+}
+
+- (NSDictionary*)vvAVPlayerItemAccessLogEventInfo:(AVPlayerItemAccessLogEvent* )event{
+    if (!event || ![event isKindOfClass:[AVPlayerItemAccessLogEvent class]]) {
+        return @{};
+    }
+    
+    NSDictionary* dic = @{
+                          @"numberOfMediaRequests":@(event.numberOfMediaRequests),
+                          @"playbackStartDate":event.playbackStartDate?:@"",
+                          @"URI":event.URI?:@"",
+                          @"serverAddress":event.serverAddress?:@"",
+                          @"numberOfServerAddressChanges":@(event.numberOfServerAddressChanges),
+                          @"playbackSessionID":event.playbackSessionID?:@"",
+                          @"playbackStartOffset":@(event.playbackStartOffset),
+                          @"segmentsDownloadedDuration":@(event.segmentsDownloadedDuration),
+                          @"durationWatched":@(event.durationWatched),
+                          @"numberOfStalls":@(event.numberOfStalls),
+                          @"numberOfBytesTransferred":@(event.numberOfBytesTransferred),
+                          @"transferDuration":@(event.transferDuration),
+                          @"observedBitrate":@(event.observedBitrate),
+                          @"indicatedBitrate":@(event.indicatedBitrate),
+                          @"numberOfDroppedVideoFrames":@(event.numberOfDroppedVideoFrames),
+                          @"startupTime":@(event.startupTime),
+                          @"downloadOverdue":@(event.downloadOverdue),
+                          @"observedMaxBitrate":@(event.observedMaxBitrate),
+                          @"observedMinBitrate":@(event.observedMinBitrate),
+                          @"observedBitrateStandardDeviation":@(event.observedBitrateStandardDeviation),
+                          @"playbackType":event.playbackType?:@"",
+                          @"mediaRequestsWWAN":@(event.mediaRequestsWWAN),
+                          @"switchBitrate":@(event.switchBitrate)
+                          };
+    
+    NSMutableDictionary* temDict = dic.mutableCopy;
+    if (@available(iOS 10.0, *)) {
+        dic = @{
+                @"indicatedAverageBitrate":@(event.indicatedAverageBitrate),
+                @"averageVideoBitrate":@(event.averageVideoBitrate),
+                @"averageAudioBitrate":@(event.averageAudioBitrate)
+                };
+        [temDict addEntriesFromDictionary:dic];
+    }
+    
+    return temDict;
+}
+
+- (void)n_playerItemNewErrorLogEntryNotification:(NSNotification *)notification{
+    AVPlayerItem* obj = notification.object;
+    if ([obj isKindOfClass:[AVPlayerItem class]]) {
+        if (obj != _playerItem) {
+            return;
+        }
+    }
+    
+    AVPlayerItemErrorLog* errorLog = [obj errorLog];
+    NSString* errorLogString = [[NSString alloc] initWithData:[errorLog extendedLogData] encoding:[errorLog extendedLogDataStringEncoding]];
+    NSLog(@"\n\nAVPlayerItem.errorLog Begin\n");
+    NSLog(@"\n%@",errorLogString);
+    NSLog(@"\nAVPlayerItem.errorLog End\n\n");
+    
+    NSArray<AVPlayerItemErrorLogEvent*>* events = [errorLog events];
+    [events enumerateObjectsUsingBlock:^(AVPlayerItemErrorLogEvent * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        NSLog(@"AVPlayerItem.errorLogEvent: \n %@",[self vvAVPlayerItemErrorLogEventInfo:obj]);
+    }];
+}
+
+
+- (NSDictionary*)vvAVPlayerItemErrorLogEventInfo:(AVPlayerItemErrorLogEvent* )event{
+    if (!event || ![event isKindOfClass:[AVPlayerItemErrorLogEvent class]]) {
+        return @{};
+    }
+    
+    return @{
+             @"date":event.date?:@"",
+             @"URI":event.URI?:@"",
+             @"serverAddress":event.serverAddress?:@"",
+             @"playbackSessionID":event.playbackSessionID?:@"",
+             @"errorStatusCode":@(event.errorStatusCode),
+             @"errorDomain":event.errorDomain?:@"",
+             @"errorComment":event.errorComment?:@""
+             };
+}
+
 //MARK: - Getter && Setter
 - (CGFloat)totalDuration{
     AVPlayerItem *playerItem = [self.player currentItem];
@@ -305,6 +409,10 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
         _playDuration += [[NSDate date] timeIntervalSinceDate:self.periodStartDate];
     }
     return _playDuration;
+}
+
+- (CGSize)presentationSize{
+    return _playerItem ? _playerItem.presentationSize : CGSizeZero;
 }
 
 - (float)volume{
@@ -426,7 +534,10 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
     [_playerItem addObserver:self forKeyPath:kLoadedTimeRanges options:NSKeyValueObservingOptionNew context:nil];// 监听loadedTimeRanges属性
     [_playerItem addObserver:self forKeyPath:kPlaybackLikelyToKeepUp options:NSKeyValueObservingOptionNew context:nil];// 监听是否可以保持播放
     [_playerItem addObserver:self forKeyPath:kPlaybackBufferEmpty options:NSKeyValueObservingOptionNew context:nil];// 监听缓存区状态
+    [_playerItem addObserver:self forKeyPath:kPresentationSize options:NSKeyValueObservingOptionNew context:nil];// 监听presentationSize属性
     [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(n_playerItemDidPlayToEndTimeNotification:) name:AVPlayerItemDidPlayToEndTimeNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(n_playerItemNewAccessLogEntryNotification:) name:AVPlayerItemNewAccessLogEntryNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(n_playerItemNewErrorLogEntryNotification:) name:AVPlayerItemNewErrorLogEntryNotification object:nil];
 }
 
 - (void)_vvRemovePlayItemObserver {
@@ -437,7 +548,10 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
     [_playerItem removeObserver:self forKeyPath:kLoadedTimeRanges];
     [_playerItem removeObserver:self forKeyPath:kPlaybackLikelyToKeepUp];
     [_playerItem removeObserver:self forKeyPath:kPlaybackBufferEmpty];
+    [_playerItem removeObserver:self forKeyPath:kPresentationSize];
     [[NSNotificationCenter defaultCenter] removeObserver:self name:AVPlayerItemDidPlayToEndTimeNotification object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:AVPlayerItemNewAccessLogEntryNotification object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:AVPlayerItemNewErrorLogEntryNotification object:nil];
 }
 
 - (void)_vvSendDelegateEvent:(VVPlayEvent)event{
@@ -474,7 +588,7 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
 }
 
 - (void)_vvApplicationWillResignActive:(NSNotification *)noti{
-    if (self.pauseWhenResignActive == YES) {
+    if (self.pauseWhenAPPResignActive == YES) {
         if (_player.rate > 0.0 || self.manualPauseCout > 1) {
             [self pause];
             self.manualPauseCout = self.manualPauseCout << s_kActiveOffset;
@@ -483,7 +597,7 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
 }
 
 - (void)_vvApplicationDidBecomeActive:(NSNotification *)noti{
-    if (self.pauseWhenResignActive == YES) {
+    if (self.pauseWhenAPPResignActive == YES) {
         if (_player.rate == 0.0 && self.manualPauseCout > 1) {
             self.manualPauseCout = self.manualPauseCout >> s_kActiveOffset;
             if (self.manualPauseCout == 1) {
@@ -511,7 +625,7 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
 }
 
 - (void)_vvWillPresentLoginViewControllerEvent:(NSNotification* )notify{
-    if (self.pauseWhenLogin == YES) {
+    if (self.pauseWhenShowLoginView == YES) {
         if (_player.rate > 0.0 || self.manualPauseCout > 1) {
             [self pause];
             self.manualPauseCout = self.manualPauseCout << s_kLoginOffset;
@@ -520,7 +634,7 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
 }
 
 - (void)_vvDidDismissLoginViewControllerEvent:(NSNotification* )notify{
-    if (self.pauseWhenLogin == YES) {
+    if (self.pauseWhenShowLoginView == YES) {
         if (_player.rate == 0.0 && self.manualPauseCout > 1) {
             self.manualPauseCout = self.manualPauseCout >> s_kLoginOffset;
             if (self.manualPauseCout == 1) {
@@ -573,8 +687,7 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
         CIImage *ciImage = [CIImage imageWithCVPixelBuffer:pixelBuffer];
         CIContext *temporaryContext = [CIContext contextWithOptions:nil];
         CGRect temRect = CGRectMake(0, 0,CVPixelBufferGetWidth(pixelBuffer),CVPixelBufferGetHeight(pixelBuffer));
-        CGImageRef videoImage = [temporaryContext createCGImage:ciImage
-                                                       fromRect:temRect];
+        CGImageRef videoImage = [temporaryContext createCGImage:ciImage fromRect:temRect];
         UIImage* temImage = [UIImage imageWithCGImage:videoImage];
         CGImageRelease(videoImage);
         CVBufferRelease(pixelBuffer);

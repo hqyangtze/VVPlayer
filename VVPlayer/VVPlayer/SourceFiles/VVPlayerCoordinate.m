@@ -50,8 +50,7 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
         [self skinViewPerformSelectorWithArgs:@selector(showContentLost)];
         return;
     }
-    
-    [self _destoryCurrentPlayer];
+    [self _vvDestoryCurrentPlayer];
     self.sourceId = sourceId;
     self.currentURLString = URLString;
     self.vvPlayer = [[VVPlayer alloc] initWithURLString:URLString];
@@ -79,7 +78,7 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
 - (void)replay{
     [self skinViewPerformSelectorWithArgs:@selector(setInteractiveEnabled:),NO];
     [self skinViewPerformSelectorWithArgs:@selector(updateProgressValue:videoDuration:),0.0,self.totalDuration];
-    [self _destoryCurrentPlayer];
+    [self _vvDestoryCurrentPlayer];
     
     [VVRecordPlayTime removePlayDuration:self.sourceId];
     [self _vvSendPlayEventEndEventWithType:VVEventTypeReplay];
@@ -89,8 +88,8 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
 - (void)destoryPlayer{
     if (_vvPlayer) {
         [self recordVideoPlayCurrentDuration];
-        [self _destoryCurrentPlayer];
-        [self resetManagerProperts];
+        [self _vvDestoryCurrentPlayer];
+        [self resetCoordinateProperts];
         [[UIApplication sharedApplication] endReceivingRemoteControlEvents];
     }
     [self removePlayerViewFromSuperView];
@@ -111,7 +110,7 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
     }
 }
 
-- (void)_destoryCurrentPlayer{
+- (void)_vvDestoryCurrentPlayer{
     if (_vvPlayer) {
         [self pause];
         VVPlayer* p = _vvPlayer;[p destory];
@@ -297,7 +296,7 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
     }
 }
 
-- (void)resetManagerProperts{
+- (void)resetCoordinateProperts{
     self.vvPlayer = nil;
     self.currentURLString = nil;
     self.sourceId = nil;
@@ -418,15 +417,15 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
         [inv setSelector:sel];
         va_list args;
         va_start(args, sel);
-        [[self class] setInv:inv withSig:sig andArgs:args];
+        [[self class] vvSetInv:inv withSig:sig andArgs:args];
         va_end(args);
         [inv invoke];
-        return [[self class] getReturnFromInv:inv withSig:sig];
+        return [[self class] vvGetReturnFromInv:inv withSig:sig];
     }
     return nil;
 }
 
-+ (id)getReturnFromInv:(NSInvocation *)inv withSig:(NSMethodSignature *)sig {
++ (id)vvGetReturnFromInv:(NSInvocation *)inv withSig:(NSMethodSignature *)sig {
     NSUInteger length = [sig methodReturnLength];
     if (length == 0) return nil;
     
@@ -494,7 +493,7 @@ return @(ret); \
 #undef return_with_number
 }
 
-+ (void)setInv:(NSInvocation *)inv withSig:(NSMethodSignature *)sig andArgs:(va_list)args {
++ (void)vvSetInv:(NSInvocation *)inv withSig:(NSMethodSignature *)sig andArgs:(va_list)args {
     NSUInteger count = [sig numberOfArguments];
     for (int index = 2; index < count; index++) {
         char *type = (char *)[sig getArgumentTypeAtIndex:index];

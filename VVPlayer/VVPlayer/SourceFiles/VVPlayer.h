@@ -42,6 +42,7 @@ typedef NS_ENUM(int, VVPlayEvent) {
     VVPlayEventSeekEnd,           // 缓冲结束
     VVPlayEventEnd,               // 播放结束
     VVPlayEventError,             // 播放出错
+    VVPlayEventPresentationSize,  // 可以获取播放尺寸
 };
 
 
@@ -63,6 +64,7 @@ typedef NS_ENUM(int, VVPlayEvent) {
 @property (nonatomic, assign, readonly) BOOL            isPlayEnd;///<是否播放结束
 @property (nonatomic, assign, readonly) VVPlayStatus    playStatus; ///<播放状态
 @property (nonatomic, assign, readonly) CGFloat         totalDuration;///<视频时长(单位秒)
+@property (nonatomic, assign, readonly) CGSize          presentationSize;///<视频画面size
 @property (nonatomic, assign, readonly) CGFloat         currentPlayTime;///<当前播放的时间点(单位秒)
 @property (nonatomic, assign, readonly) CGFloat         hasLoadedDuration;///<视频缓冲时长(单位秒)
 @property (nonatomic, assign, readonly) NSTimeInterval  startPlayTime;///<资源加载可以播放(时间戳)
@@ -70,16 +72,13 @@ typedef NS_ENUM(int, VVPlayEvent) {
 @property (nonatomic, assign, readonly) CGFloat         initPlayerDuration;///<首开时长(单位秒)
 
 /// 播放控制
-@property (nonatomic, weak) id <VVPlayerDelegate> delegate;///<播放器代理
+@property (nonatomic, weak  ) id <VVPlayerDelegate> delegate;///<播放器代理
 @property (nonatomic, assign) float volume; ///<音量（0.0 ~ 1.0）
 @property (nonatomic, assign, getter=isMuted) BOOL muted;///<静音
 @property (nonatomic, assign) BOOL isEarpiece; ///<是否听筒模式
 @property (nonatomic, assign) float rate; ///<播放速度 (0.0 ~ 2.0)
-
-/**
- 视频画面显示模式
- */
-@property (nonatomic, copy) AVLayerVideoGravity videoGravity;///< 视频显示模式
+@property (nonatomic, copy  ) AVLayerVideoGravity videoGravity;///< 视频画面显示模式
+@property (nonatomic, assign) BOOL reversePlaybackEnd;///< 播放结束主动 seek: kCMTimeZone (default: NO)
 
 /**
  播放结束时需要停留在最后一帧 default: NO
@@ -91,19 +90,13 @@ typedef NS_ENUM(int, VVPlayEvent) {
  弹出登录框时，是否暂停播放  default: YES
  登录框消失后会恢复之前的播放状态
  */
-@property (nonatomic, assign) BOOL pauseWhenLogin;
+@property (nonatomic, assign) BOOL pauseWhenShowLoginView;
 
 /**
  当APP rseignActive 是否暂停播放 default: YES
  APP active 时，恢复之前的播放状态
  */
-@property (nonatomic, assign) BOOL pauseWhenResignActive;
-
-/**
- 播放结束主动 seek: kCMTimeZone
- default: NO
- */
-@property (nonatomic, assign) BOOL reversePlaybackEnd;
+@property (nonatomic, assign) BOOL pauseWhenAPPResignActive;
 
 /**
  初始化播放时，设置播放链接，会自动加载资源
