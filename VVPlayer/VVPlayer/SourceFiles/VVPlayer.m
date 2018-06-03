@@ -9,9 +9,6 @@
 #import "VVPlayer.h"
 #import <AVFoundation/AVFoundation.h>
 
-NSString* const kLoginViewControllerWillAppearNotification = @"kLoginViewControllerWillAppearNotification";
-NSString* const kLoginViewControllerDidDisappearNotification = @"kLoginViewControllerDidDisappearNotification";
-
 static NSString* const kStatus = @"status";
 static NSString* const kLoadedTimeRanges = @"loadedTimeRanges";
 static NSString* const kPlaybackLikelyToKeepUp = @"playbackLikelyToKeepUp";
@@ -66,6 +63,7 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
 
 - (void)setVideoFillMode:(NSString *)fillMode{
     AVPlayerLayer *playerLayer = (AVPlayerLayer*)[self layer];
+    playerLayer.contentsScale = [UIScreen mainScreen].scale;
     playerLayer.videoGravity = fillMode;
     NSArray* videoGravity = @[AVLayerVideoGravityResizeAspect,AVLayerVideoGravityResizeAspectFill,AVLayerVideoGravityResize];
     NSArray* contentModel = @[@(UIViewContentModeScaleAspectFit),@(UIViewContentModeScaleAspectFill),@(UIViewContentModeScaleToFill)];
@@ -108,6 +106,7 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
     if (self = [super init]) {
         _assetURL = [NSURL URLWithString:urlString];
         _playStatus = VVPlayStatusUnknow;
+        _videoGravity = AVLayerVideoGravityResizeAspect;
         _pauseWhenShowLoginView = YES;
         _pauseWhenAPPResignActive = YES;
         _reversePlaybackEnd = NO;
@@ -184,21 +183,18 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
 }
 
 //MARK: - player event
-- (void)observeValueForKeyPath:(NSString *)keyPath
-                      ofObject:(id)object
-                        change:(NSDictionary *)change
-                       context:(void *)context {
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
     if (_isPlayEnd) {
         return;
     }
     AVPlayerItem *playerItem = (AVPlayerItem *)object;
     if ([keyPath isEqualToString:kStatus]) {
         if ([playerItem status] == AVPlayerItemStatusReadyToPlay) {
-            self.playStatus = self.player.rate == 0.0 ? VVPlayStatusPause:VVPlayStatusPlaying;
+            self.playStatus = (self.player.rate == 0.0) ? VVPlayStatusPause:VVPlayStatusPlaying;
             [self currentPlayitemReadyToPlay];
         }else if ([playerItem status] == AVPlayerStatusFailed) {
             NSError* error = playerItem.error;
-            NSLog(@"player error %@",error.localizedFailureReason);
+            NSLog(@"vvPlayer error %@",error.localizedFailureReason);
             self.playStatus = VVPlayStatusFailed;
             _isPlayEnd = NO;
             [self endPeriodDateStatistics];
@@ -215,7 +211,7 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
         if (self.manualPauseCout > 1) {
             _player.rate = 0.0;
         }
-        self.playStatus = self.player.rate == 0.0 ? VVPlayStatusPause:VVPlayStatusPlaying;
+        self.playStatus = (self.player.rate == 0.0) ? VVPlayStatusPause:VVPlayStatusPlaying;
         [self _vvSendDelegateEvent:VVPlayEventSeekEnd];
     }else if ([keyPath isEqualToString:kPlaybackBufferEmpty]) {
         self.playStatus = VVPlayStatusSeeking;
@@ -473,7 +469,6 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
     if (_playerView == nil) {
         _playerView = [[_Inner_VVPlayView alloc] initWithFrame:CGRectZero];
         [(_Inner_VVPlayView*)_playerView setVideoFillMode:_videoGravity];
-        _playerView.contentMode = UIViewContentModeScaleAspectFill;
         _playerView.clipsToBounds = YES;
     }
 }
@@ -484,12 +479,13 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
     _playerItem = playerItem;
     [self _vvAddPlayItemObserver];
     
-    _player = [AVPlayer playerWithPlayerItem:playerItem];
+    _player = [[AVPlayer alloc] init];
     _player.actionAtItemEnd = AVPlayerActionAtItemEndPause;
     _player.volume = _volume;
     _player.muted = _muted;
     _player.rate = _rate;
     [(_Inner_VVPlayView*)_playerView setPlayer:_player];
+    [_player replaceCurrentItemWithPlayerItem:_playerItem];
     self.playStatus = VVPlayStatusPreparing;
     
     // 跟随系统优化
@@ -501,6 +497,11 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
     if([_playerItem respondsToSelector:@selector(setCanUseNetworkResourcesForLiveStreamingWhilePaused:)]){
         if (@available(iOS 9.0, *)) {
             [_playerItem setCanUseNetworkResourcesForLiveStreamingWhilePaused:YES];
+        }
+    }
+    if ([_player respondsToSelector:@selector(setAutomaticallyWaitsToMinimizeStalling:)]) {
+        if (@available(iOS 10.0, *)) {
+            [_player setAutomaticallyWaitsToMinimizeStalling:YES];
         }
     }
     
@@ -683,17 +684,24 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
 
 - (void)setBGImageAtCMTime:(CMTime)itemTime{
     if ([self.videoOutput hasNewPixelBufferForItemTime:itemTime]) {
-        CVPixelBufferRef pixelBuffer = [self.videoOutput copyPixelBufferForItemTime:itemTime itemTimeForDisplay:nil];
-        CIImage *ciImage = [CIImage imageWithCVPixelBuffer:pixelBuffer];
-        CIContext *temporaryContext = [CIContext contextWithOptions:nil];
+        CVPixelBufferRef pixelBuffer = [self.videoOutput copyPixelBufferForItemTime:itemTime itemTimeForDisplay:NULL];
         CGRect temRect = CGRectMake(0, 0,CVPixelBufferGetWidth(pixelBuffer),CVPixelBufferGetHeight(pixelBuffer));
+        if (pixelBuffer == NULL) {
+            NSLog(@"vvPlayer [AVPlayerItemVideoOutput.instance copyPixelBufferForItemTime:itemTimeForDisplay:] return NULL");
+            return;
+        }
+        CIImage *ciImage = [CIImage imageWithCVPixelBuffer:pixelBuffer];
+        CVBufferRelease(pixelBuffer);// no use later
+        if (ciImage == nil) {
+            NSLog(@"vvPlayer [CIImage imageWithCVPixelBuffer:] return nil");
+            return;
+        }
+        CIContext *temporaryContext = [CIContext contextWithOptions:nil];
         CGImageRef videoImage = [temporaryContext createCGImage:ciImage fromRect:temRect];
-        UIImage* temImage = [UIImage imageWithCGImage:videoImage];
-        CGImageRelease(videoImage);
-        CVBufferRelease(pixelBuffer);
         dispatch_async_on_main_queue(^{
             if(videoImage != nil){
-                self.playerView.layer.contents = (__bridge id _Nullable)(temImage.CGImage);
+                self.playerView.layer.contents = (__bridge id _Nullable)(videoImage);
+                CGImageRelease(videoImage);
             }
         });
     }

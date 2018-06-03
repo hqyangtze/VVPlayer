@@ -10,8 +10,6 @@
 #import "VVPlayer.h"
 #import "VVRecordPlayTime.h"
 
-NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeChangedNotification";
-
 @interface VVPlayerCoordinate()
 @property (nonatomic, strong) UIView    *playerView;///<承载播放页面的视图
 @property (nonatomic, copy)   NSString  *currentURLString;///<链接
@@ -53,7 +51,7 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
     [self _vvDestoryCurrentPlayer];
     self.sourceId = sourceId;
     self.currentURLString = URLString;
-    self.vvPlayer = [[VVPlayer alloc] initWithURLString:URLString];
+    _vvPlayer = [[VVPlayer alloc] initWithURLString:URLString];
     [self _vvConfiguratePlayer];
     [self skinViewPerformSelectorWithArgs:@selector(showLoading)];
     [self addNotificationObservers];
@@ -63,13 +61,13 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
 }
 
 - (void)play{
-    [self.vvPlayer play];
+    [_vvPlayer play];
     [self skinViewPerformSelectorWithArgs:@selector(showPlayingView)];
     [self _vvSendPlayEventEndEventWithType:VVEventTypePlay];
 }
 
 - (void)pause{
-    [self.vvPlayer pause];
+    [_vvPlayer pause];
     [self skinViewPerformSelectorWithArgs:@selector(hidenLoading)];
     [self skinViewPerformSelectorWithArgs:@selector(showPauseView)];
     [self _vvSendPlayEventEndEventWithType:VVEventTypePause];
@@ -120,7 +118,7 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
 }
 
 - (void)_vvConfiguratePlayer{
-    _vvPlayer.needLastFrame = NO;
+    _vvPlayer.needLastFrame = YES;
     _vvPlayer.delegate = (id<VVPlayerDelegate>)self;
     [_vvPlayer setVideoGravity:_videoGravity];
     _vvPlayer.muted = self.isMuted;
@@ -129,8 +127,8 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
         self.isMuted = NO;
         [_vvPlayer setVideoGravity:AVLayerVideoGravityResizeAspect];
     }
-    self.vvPlayer.playerView.frame = CGRectMake(0, 0, 160, 90);
-    self.playerView = self.vvPlayer.playerView;
+    _vvPlayer.playerView.frame = CGRectMake(0, 0, 160, 90);
+    self.playerView = _vvPlayer.playerView;
     if (self.playerView) {
         [self skinViewPerformSelectorWithArgs:@selector(setPlayerView:),self.playerView];
     }
@@ -143,7 +141,7 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
     }else if (playerEvent == VVPlayEventReadyToPlay){//资源非第一次加载好
         [self play];
     }else if (playerEvent == VVPlayEventCacheChanged){//缓存发生改变
-        [self skinViewPerformSelectorWithArgs:@selector(updateCacheValue:videoDuration:),self.vvPlayer.hasLoadedDuration,self.vvPlayer.totalDuration];
+        [self skinViewPerformSelectorWithArgs:@selector(updateCacheValue:videoDuration:),_vvPlayer.hasLoadedDuration,_vvPlayer.totalDuration];
     }else if (playerEvent == VVPlayEventSeekStart){//开始seek
         if (vv_networkStatus() == VVNetWorkUnable) {
             [self skinViewPerformSelectorWithArgs:@selector(hidenLoading)];
@@ -172,7 +170,7 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
 
 #pragma mark - VVPlayerSkinDelegate
 - (void)play:(UIView<VVPlayerSkinProtocol> *)skinView{
-    if (self.vvPlayer.playStatus == VVPlayStatusFinish) {
+    if (_vvPlayer.playStatus == VVPlayStatusFinish) {
         [self replay];
     }else{
         [self play];
@@ -185,7 +183,7 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
 
 - (void)seekToTime:(CGFloat)interval skinView:(UIView<VVPlayerSkinProtocol> *)skinView complete:(void (^)(BOOL))complete{
     __weak typeof (self) weakSelf = self;
-    [self.vvPlayer seekToTime:interval completion:^(BOOL finished) {
+    [_vvPlayer seekToTime:interval completion:^(BOOL finished) {
         if (finished) {
             [weakSelf play];
         }
@@ -254,12 +252,12 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
 - (void)_vvPlayEventPrepareDoneEvent{
     self.totalDuration = _vvPlayer.totalDuration;
     [self skinViewPerformSelectorWithArgs:@selector(setInteractiveEnabled:),YES];
-    [self skinViewPerformSelectorWithArgs:@selector(updateProgressValue:videoDuration:),self.vvPlayer.currentPlayTime,self.totalDuration];
+    [self skinViewPerformSelectorWithArgs:@selector(updateProgressValue:videoDuration:),_vvPlayer.currentPlayTime,self.totalDuration];
     
     long long seekToDuration = [[VVRecordPlayTime playDuration:self.sourceId] longLongValue];
     if (seekToDuration > 0) {
         __weak typeof(self) weakSelf = self;
-        [self.vvPlayer seekToTime:seekToDuration completion:^(BOOL finished) {
+        [_vvPlayer seekToTime:seekToDuration completion:^(BOOL finished) {
             __strong typeof(weakSelf) strongSelf = weakSelf;
             [VVRecordPlayTime removePlayDuration:strongSelf.sourceId];
             [strongSelf play];
@@ -297,7 +295,7 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
 }
 
 - (void)resetCoordinateProperts{
-    self.vvPlayer = nil;
+    _vvPlayer = nil;
     self.currentURLString = nil;
     self.sourceId = nil;
     self.currentPlayDuration = 0;
@@ -306,7 +304,7 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
     self.forcedMuted = NO;
     self.fullScreenPlay = NO;
     self.sourceType = 0;
-    self.videoGravity = AVLayerVideoGravityResizeAspectFill;
+    self.videoGravity = AVLayerVideoGravityResizeAspect;
     self.eventEndCall = nil;
 }
 
@@ -341,7 +339,7 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
                 self.isMuted = NO;
                 break;
             case AVAudioSessionRouteChangeReasonOldDeviceUnavailable:
-                if (self.vvPlayer.isPlaying) {
+                if (_vvPlayer.isPlaying) {
                     [self pause];
                 }
                 break;
@@ -383,7 +381,7 @@ NSString* const KNetworkMonitorTypeChangedNotification = @"KNetworkMonitorTypeCh
     NSArray* options = @[AVLayerVideoGravityResizeAspectFill,AVLayerVideoGravityResizeAspect,AVLayerVideoGravityResize];
     if ([options containsObject:videoGravity] && (_videoGravity != videoGravity)) {
         _videoGravity = videoGravity;
-        [self.vvPlayer setVideoGravity:videoGravity];
+        [_vvPlayer setVideoGravity:videoGravity];
     }
 }
 

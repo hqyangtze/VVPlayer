@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		05ADF91320C39BD700CBADCC /* VVHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 05ADF91220C39BD700CBADCC /* VVHelper.m */; };
 		05BE9CBF1FE4FAC600B25C4B /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 05BE9CBE1FE4FAC600B25C4B /* AppDelegate.m */; };
 		05BE9CC21FE4FAC600B25C4B /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 05BE9CC11FE4FAC600B25C4B /* ViewController.m */; };
 		05BE9CC51FE4FAC600B25C4B /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 05BE9CC31FE4FAC600B25C4B /* Main.storyboard */; };
@@ -23,6 +24,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		05ADF91220C39BD700CBADCC /* VVHelper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VVHelper.m; sourceTree = "<group>"; };
 		05BE9CBA1FE4FAC600B25C4B /* VVPlayer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VVPlayer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		05BE9CBD1FE4FAC600B25C4B /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		05BE9CBE1FE4FAC600B25C4B /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -116,6 +118,7 @@
 				05BE9CD81FE4FB2700B25C4B /* VVPlayerSkinInfoProtocol.h */,
 				05BE9CD71FE4FB2700B25C4B /* VVPlayerSkinProtocol.h */,
 				05BE9CE01FE4FDF500B25C4B /* VVHelper.h */,
+				05ADF91220C39BD700CBADCC /* VVHelper.m */,
 			);
 			path = SourceFiles;
 			sourceTree = "<group>";
@@ -287,6 +290,7 @@
 				05BE9CD61FE4FB0500B25C4B /* VVPlayer.m in Sources */,
 				05BE9CEA1FE63B3500B25C4B /* UIView+Geometry.m in Sources */,
 				05BE9CBF1FE4FAC600B25C4B /* AppDelegate.m in Sources */,
+				05ADF91320C39BD700CBADCC /* VVHelper.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
