@@ -29,8 +29,7 @@
 }
 
 - (instancetype)init{
-    self = [super init];
-    if (self) {
+    if (self = [super init]) {
         _videoGravity = AVLayerVideoGravityResizeAspectFill;
         _isMuted = NO;
         _forcedMuted = NO;
@@ -57,20 +56,20 @@
     [self addNotificationObservers];
     [self checkNetworkEnrimoentAndToastInfo];
     [self skinViewPerformSelectorWithArgs:@selector(setIsMuted:),(self.isMuted)];
-    [self _vvSendPlayEventEndEventWithType:VVEventTypeLoadURL];
+    [self _vvPlayEventEndCallBackWithType:VVEventTypeLoadURL];
 }
 
 - (void)play{
     [_vvPlayer play];
     [self skinViewPerformSelectorWithArgs:@selector(showPlayingView)];
-    [self _vvSendPlayEventEndEventWithType:VVEventTypePlay];
+    [self _vvPlayEventEndCallBackWithType:VVEventTypePlay];
 }
 
 - (void)pause{
     [_vvPlayer pause];
     [self skinViewPerformSelectorWithArgs:@selector(hidenLoading)];
     [self skinViewPerformSelectorWithArgs:@selector(showPauseView)];
-    [self _vvSendPlayEventEndEventWithType:VVEventTypePause];
+    [self _vvPlayEventEndCallBackWithType:VVEventTypePause];
 }
 
 - (void)replay{
@@ -79,7 +78,7 @@
     [self _vvDestoryCurrentPlayer];
     
     [VVRecordPlayTime removePlayDuration:self.sourceId];
-    [self _vvSendPlayEventEndEventWithType:VVEventTypeReplay];
+    [self _vvPlayEventEndCallBackWithType:VVEventTypeReplay];
     [self startWithURLString:self.currentURLString sourceId:self.sourceId];
 }
 
@@ -112,7 +111,7 @@
     if (_vvPlayer) {
         [self pause];
         VVPlayer* p = _vvPlayer;[p destory];
-        [self _vvSendPlayEventEndEventWithType:VVEventTypeDestory];
+        [self _vvPlayEventEndCallBackWithType:VVEventTypeDestory];
         _vvPlayer = nil;
     }
 }
@@ -134,7 +133,7 @@
     }
 }
 
-#pragma mark - VVPlayerDelegate
+//MARK: - VVPlayerDelegate
 - (void)getPlayer:(VVPlayer *)player event:(VVPlayEvent)playerEvent{
     if (playerEvent == VVPlayEventPrepareDone) {// 资源第一次加载好
          [self _vvPlayEventPrepareDoneEvent];
@@ -155,10 +154,10 @@
     }else if (playerEvent == VVPlayEventEnd){//播放结束
         [self skinViewPerformSelectorWithArgs:@selector(hidenLoading)];
         [self skinViewPerformSelectorWithArgs:@selector(showFinishedView)];
-        [self _vvSendPlayEventEndEventWithType:VVEventTypePlayEnd];
+        [self _vvPlayEventEndCallBackWithType:VVEventTypePlayEnd];
     }else if (playerEvent == VVPlayEventError){//播放出错
         [self toastErrorViewBaseNetworkEnvironment];
-        [self _vvSendPlayEventEndEventWithType:VVEventTypePlayError];
+        [self _vvPlayEventEndCallBackWithType:VVEventTypePlayError];
     }
 }
 
@@ -168,7 +167,7 @@
     [self skinViewPerformSelectorWithArgs:@selector(updateProgressValue:videoDuration:),position,duration];
 }
 
-#pragma mark - VVPlayerSkinDelegate
+//MARK: - VVPlayerSkinDelegate
 - (void)play:(UIView<VVPlayerSkinProtocol> *)skinView{
     if (_vvPlayer.playStatus == VVPlayStatusFinish) {
         [self replay];
@@ -220,7 +219,7 @@
     [self destoryPlayer];
 }
 
-#pragma mark - private function
+//MARK: - Private Function
 - (void)addNotificationObservers{
     [self removeNotificationObservers];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_vvNetwotkReachabilityChanged:) name:KNetworkMonitorTypeChangedNotification object:nil];
@@ -308,7 +307,7 @@
     self.eventEndCall = nil;
 }
 
-- (void)_vvSendPlayEventEndEventWithType:(VVEventType) eventType{
+- (void)_vvPlayEventEndCallBackWithType:(VVEventType) eventType{
     id temValue = [self skinViewPerformSelectorWithArgs:@selector(isFullScreen)];
     BOOL isFullScreenn = temValue ? [temValue boolValue] : NO;
     !self.eventEndCall ? : self.eventEndCall(isFullScreenn,eventType);
@@ -402,7 +401,7 @@
     return NO;
 }
 
-
+//MARK: - Helper Function
 - (id)skinViewPerformSelectorWithArgs:(SEL)sel, ...{
     if ([self.skinView conformsToProtocol:@protocol(VVPlayerSkinProtocol)]
         && [self.skinView respondsToSelector:sel]) {

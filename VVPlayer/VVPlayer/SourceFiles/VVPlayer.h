@@ -104,19 +104,13 @@ typedef NS_ENUM(int, VVPlayEvent) {
  */
 - (instancetype)initWithURLString:(NSString *)urlString;
 
-/**
- * 播放
- */
+/// 开始播放
 - (void)play;
 
-/**
- * 暂停
- */
+/// 暂停播放
 - (void)pause;
 
-/**
- * 销毁
- */
+/// 销毁，释放资源
 - (void)destory;
 
 /**

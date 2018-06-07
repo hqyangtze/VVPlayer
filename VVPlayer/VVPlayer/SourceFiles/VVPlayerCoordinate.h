@@ -27,6 +27,8 @@ typedef void(^VVEventEndCall)(BOOL isFullScreen,VVEventType eventType);
 @property (nonatomic, assign, readonly) CGFloat totalDuration;///<视频总时长
 @property (nonatomic, assign, readonly) BOOL isHeadphones;///<用户是否戴着耳机
 
+@property (nonatomic, copy) AVLayerVideoGravity videoGravity;///< 视频显示模式
+
 /**
  播放器，使用startWithURLString:内部会生成一个播放器
  */
@@ -52,11 +54,6 @@ typedef void(^VVEventEndCall)(BOOL isFullScreen,VVEventType eventType);
  是否使用全屏页面播放
  */
 @property (nonatomic, assign) BOOL fullScreenPlay;///<全屏播放
-
-/**
- 视频画面显示模式
- */
-@property (nonatomic, copy) AVLayerVideoGravity videoGravity;///< 视频显示模式
 
 /**
  预留字段，可以根据该字段修改播放器的交互逻辑

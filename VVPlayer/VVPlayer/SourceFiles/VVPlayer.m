@@ -182,7 +182,7 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
     }];
 }
 
-//MARK: - player event
+//MARK: - Player Event
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
     if (_isPlayEnd) {
         return;
@@ -287,50 +287,6 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
     }];
 }
 
-- (NSDictionary*)vvAVPlayerItemAccessLogEventInfo:(AVPlayerItemAccessLogEvent* )event{
-    if (!event || ![event isKindOfClass:[AVPlayerItemAccessLogEvent class]]) {
-        return @{};
-    }
-    
-    NSDictionary* dic = @{
-                          @"numberOfMediaRequests":@(event.numberOfMediaRequests),
-                          @"playbackStartDate":event.playbackStartDate?:@"",
-                          @"URI":event.URI?:@"",
-                          @"serverAddress":event.serverAddress?:@"",
-                          @"numberOfServerAddressChanges":@(event.numberOfServerAddressChanges),
-                          @"playbackSessionID":event.playbackSessionID?:@"",
-                          @"playbackStartOffset":@(event.playbackStartOffset),
-                          @"segmentsDownloadedDuration":@(event.segmentsDownloadedDuration),
-                          @"durationWatched":@(event.durationWatched),
-                          @"numberOfStalls":@(event.numberOfStalls),
-                          @"numberOfBytesTransferred":@(event.numberOfBytesTransferred),
-                          @"transferDuration":@(event.transferDuration),
-                          @"observedBitrate":@(event.observedBitrate),
-                          @"indicatedBitrate":@(event.indicatedBitrate),
-                          @"numberOfDroppedVideoFrames":@(event.numberOfDroppedVideoFrames),
-                          @"startupTime":@(event.startupTime),
-                          @"downloadOverdue":@(event.downloadOverdue),
-                          @"observedMaxBitrate":@(event.observedMaxBitrate),
-                          @"observedMinBitrate":@(event.observedMinBitrate),
-                          @"observedBitrateStandardDeviation":@(event.observedBitrateStandardDeviation),
-                          @"playbackType":event.playbackType?:@"",
-                          @"mediaRequestsWWAN":@(event.mediaRequestsWWAN),
-                          @"switchBitrate":@(event.switchBitrate)
-                          };
-    
-    NSMutableDictionary* temDict = dic.mutableCopy;
-    if (@available(iOS 10.0, *)) {
-        dic = @{
-                @"indicatedAverageBitrate":@(event.indicatedAverageBitrate),
-                @"averageVideoBitrate":@(event.averageVideoBitrate),
-                @"averageAudioBitrate":@(event.averageAudioBitrate)
-                };
-        [temDict addEntriesFromDictionary:dic];
-    }
-    
-    return temDict;
-}
-
 - (void)n_playerItemNewErrorLogEntryNotification:(NSNotification *)notification{
     AVPlayerItem* obj = notification.object;
     if ([obj isKindOfClass:[AVPlayerItem class]]) {
@@ -349,23 +305,6 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
     [events enumerateObjectsUsingBlock:^(AVPlayerItemErrorLogEvent * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
         NSLog(@"AVPlayerItem.errorLogEvent: \n %@",[self vvAVPlayerItemErrorLogEventInfo:obj]);
     }];
-}
-
-
-- (NSDictionary*)vvAVPlayerItemErrorLogEventInfo:(AVPlayerItemErrorLogEvent* )event{
-    if (!event || ![event isKindOfClass:[AVPlayerItemErrorLogEvent class]]) {
-        return @{};
-    }
-    
-    return @{
-             @"date":event.date?:@"",
-             @"URI":event.URI?:@"",
-             @"serverAddress":event.serverAddress?:@"",
-             @"playbackSessionID":event.playbackSessionID?:@"",
-             @"errorStatusCode":@(event.errorStatusCode),
-             @"errorDomain":event.errorDomain?:@"",
-             @"errorComment":event.errorComment?:@""
-             };
 }
 
 //MARK: - Getter && Setter
@@ -502,6 +441,11 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
     if ([_player respondsToSelector:@selector(setAutomaticallyWaitsToMinimizeStalling:)]) {
         if (@available(iOS 10.0, *)) {
             [_player setAutomaticallyWaitsToMinimizeStalling:YES];
+        }
+    }
+    if ([_playerItem respondsToSelector:@selector(setVideoApertureMode:)]) {
+        if (@available(iOS 11.0, *)) {
+            _playerItem.videoApertureMode = AVVideoApertureModeProductionAperture;
         }
     }
     
@@ -662,7 +606,7 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
 -(void)getCurrentVideoImage{
     @try {
         CMTime itemTime = _player.currentTime;
-        [self setBGImageAtCMTime:itemTime];
+        [self _vvGetBGImageAtCMTime:itemTime];
     } @catch (NSException *exception) {
         NSLog(@"vvPlayer getCurrentVideoImage %@",exception.reason);
     } @finally {
@@ -674,7 +618,7 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
         CMTime itemTime = CMTimeMakeWithSeconds(self.totalDuration-0.05, 600);
         __weak typeof (self) weakSelf = self;
         if (weakSelf.videoOutput) {
-            [weakSelf setBGImageAtCMTime:itemTime];
+            [weakSelf _vvGetBGImageAtCMTime:itemTime];
         }
     } @catch (NSException *exception) {
         NSLog(@"vvPlayer getLastFrameVideoImage%@",exception.reason);
@@ -682,10 +626,9 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
     }
 }
 
-- (void)setBGImageAtCMTime:(CMTime)itemTime{
+- (void)_vvGetBGImageAtCMTime:(CMTime)itemTime{
     if ([self.videoOutput hasNewPixelBufferForItemTime:itemTime]) {
         CVPixelBufferRef pixelBuffer = [self.videoOutput copyPixelBufferForItemTime:itemTime itemTimeForDisplay:NULL];
-        CGRect temRect = CGRectMake(0, 0,CVPixelBufferGetWidth(pixelBuffer),CVPixelBufferGetHeight(pixelBuffer));
         if (pixelBuffer == NULL) {
             NSLog(@"vvPlayer [AVPlayerItemVideoOutput.instance copyPixelBufferForItemTime:itemTimeForDisplay:] return NULL");
             return;
@@ -697,14 +640,78 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
             return;
         }
         CIContext *temporaryContext = [CIContext contextWithOptions:nil];
+        CGRect temRect = CGRectMake(0, 0,CVPixelBufferGetWidth(pixelBuffer),CVPixelBufferGetHeight(pixelBuffer));
         CGImageRef videoImage = [temporaryContext createCGImage:ciImage fromRect:temRect];
         dispatch_async_on_main_queue(^{
             if(videoImage != nil){
-                self.playerView.layer.contents = (__bridge id _Nullable)(videoImage);
+                self.playerView.layer.contents = (__bridge id)(videoImage);
                 CGImageRelease(videoImage);
             }
         });
     }
+}
+
+
+//MARK: - LOG Method
+- (NSDictionary*)vvAVPlayerItemAccessLogEventInfo:(AVPlayerItemAccessLogEvent* )event{
+    if (!event || ![event isKindOfClass:[AVPlayerItemAccessLogEvent class]]) {
+        return @{};
+    }
+    
+    NSDictionary* dic = @{
+                          @"numberOfMediaRequests":@(event.numberOfMediaRequests),
+                          @"playbackStartDate":event.playbackStartDate?:@"",
+                          @"URI":event.URI?:@"",
+                          @"serverAddress":event.serverAddress?:@"",
+                          @"numberOfServerAddressChanges":@(event.numberOfServerAddressChanges),
+                          @"playbackSessionID":event.playbackSessionID?:@"",
+                          @"playbackStartOffset":@(event.playbackStartOffset),
+                          @"segmentsDownloadedDuration":@(event.segmentsDownloadedDuration),
+                          @"durationWatched":@(event.durationWatched),
+                          @"numberOfStalls":@(event.numberOfStalls),
+                          @"numberOfBytesTransferred":@(event.numberOfBytesTransferred),
+                          @"transferDuration":@(event.transferDuration),
+                          @"observedBitrate":@(event.observedBitrate),
+                          @"indicatedBitrate":@(event.indicatedBitrate),
+                          @"numberOfDroppedVideoFrames":@(event.numberOfDroppedVideoFrames),
+                          @"startupTime":@(event.startupTime),
+                          @"downloadOverdue":@(event.downloadOverdue),
+                          @"observedMaxBitrate":@(event.observedMaxBitrate),
+                          @"observedMinBitrate":@(event.observedMinBitrate),
+                          @"observedBitrateStandardDeviation":@(event.observedBitrateStandardDeviation),
+                          @"playbackType":event.playbackType?:@"",
+                          @"mediaRequestsWWAN":@(event.mediaRequestsWWAN),
+                          @"switchBitrate":@(event.switchBitrate)
+                          };
+    
+    NSMutableDictionary* temDict = dic.mutableCopy;
+    if (@available(iOS 10.0, *)) {
+        dic = @{
+                @"indicatedAverageBitrate":@(event.indicatedAverageBitrate),
+                @"averageVideoBitrate":@(event.averageVideoBitrate),
+                @"averageAudioBitrate":@(event.averageAudioBitrate)
+                };
+        [temDict addEntriesFromDictionary:dic];
+    }
+    
+    return temDict;
+}
+
+
+- (NSDictionary*)vvAVPlayerItemErrorLogEventInfo:(AVPlayerItemErrorLogEvent* )event{
+    if (!event || ![event isKindOfClass:[AVPlayerItemErrorLogEvent class]]) {
+        return @{};
+    }
+    
+    return @{
+             @"date":event.date?:@"",
+             @"URI":event.URI?:@"",
+             @"serverAddress":event.serverAddress?:@"",
+             @"playbackSessionID":event.playbackSessionID?:@"",
+             @"errorStatusCode":@(event.errorStatusCode),
+             @"errorDomain":event.errorDomain?:@"",
+             @"errorComment":event.errorComment?:@""
+             };
 }
 
 @end
