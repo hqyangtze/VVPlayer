@@ -61,6 +61,7 @@
 
 - (void)play{
     [_vvPlayer play];
+    [self skinViewPerformSelectorWithArgs:@selector(hidenLoading)];
     [self skinViewPerformSelectorWithArgs:@selector(showPlayingView)];
     [self _vvPlayEventEndCallBackWithType:VVEventTypePlay];
 }
