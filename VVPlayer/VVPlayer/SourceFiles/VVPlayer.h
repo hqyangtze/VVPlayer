@@ -75,7 +75,6 @@ typedef NS_ENUM(int, VVPlayEvent) {
 @property (nonatomic, weak  ) id <VVPlayerDelegate> delegate;///<播放器代理
 @property (nonatomic, assign) float volume; ///<音量（0.0 ~ 1.0）
 @property (nonatomic, assign, getter=isMuted) BOOL muted;///<静音
-@property (nonatomic, assign) BOOL isEarpiece; ///<是否听筒模式
 @property (nonatomic, assign) float rate; ///<播放速度 (0.0 ~ 2.0)
 @property (nonatomic, copy  ) AVLayerVideoGravity videoGravity;///< 视频画面显示模式
 @property (nonatomic, assign) BOOL reversePlaybackEnd;///< 播放结束主动 seek: kCMTimeZone (default: NO)

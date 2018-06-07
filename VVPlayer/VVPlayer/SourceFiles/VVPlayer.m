@@ -260,11 +260,11 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
     _isPlayEnd = YES;
     [self endPeriodDateStatistics];
     _playStatus = VVPlayStatusFinish;
-    [self _vvSendDelegateEvent:VVPlayEventEnd];
     // 播放完 seek 到开始位置
     if (self.reversePlaybackEnd == YES) {
         [self.player.currentItem seekToTime:kCMTimeZero completionHandler:nil];
     }
+    [self _vvSendDelegateEvent:VVPlayEventEnd];
 }
 
 - (void)n_playerItemNewAccessLogEntryNotification:(NSNotification *)notification{
