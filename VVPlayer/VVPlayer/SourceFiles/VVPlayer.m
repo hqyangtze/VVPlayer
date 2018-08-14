@@ -155,6 +155,7 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
         self.playStatus = VVPlayStatusUnknow;
         [self _vvRemovePlayItemObserver];
         [self _vvRemovePlayerTimeObserver];
+        [_player replaceCurrentItemWithPlayerItem:nil];
         _videoOutput= nil;
         _player = nil;
         _vvSetAudioSession(YES, s_originCategory,s_originCategoryOption);
@@ -428,23 +429,23 @@ void getAudioSession(NSString* category,AVAudioSessionCategoryOptions option){
     self.playStatus = VVPlayStatusPreparing;
     
     // 跟随系统优化
-    if([_playerItem respondsToSelector:@selector(setPreferredForwardBufferDuration:)]){
-        if (@available(iOS 10.0, *)) {
+    if (@available(iOS 10.0, *)) {
+        if([_playerItem respondsToSelector:@selector(setPreferredForwardBufferDuration:)]){
             [_playerItem setPreferredForwardBufferDuration:3.0];
         }
     }
-    if([_playerItem respondsToSelector:@selector(setCanUseNetworkResourcesForLiveStreamingWhilePaused:)]){
-        if (@available(iOS 9.0, *)) {
+    if (@available(iOS 9.0, *)) {
+        if([_playerItem respondsToSelector:@selector(setCanUseNetworkResourcesForLiveStreamingWhilePaused:)]){
             [_playerItem setCanUseNetworkResourcesForLiveStreamingWhilePaused:YES];
         }
     }
-    if ([_player respondsToSelector:@selector(setAutomaticallyWaitsToMinimizeStalling:)]) {
-        if (@available(iOS 10.0, *)) {
+    if (@available(iOS 10.0, *)) {
+        if ([_player respondsToSelector:@selector(setAutomaticallyWaitsToMinimizeStalling:)]) {
             [_player setAutomaticallyWaitsToMinimizeStalling:YES];
         }
     }
-    if ([_playerItem respondsToSelector:@selector(setVideoApertureMode:)]) {
-        if (@available(iOS 11.0, *)) {
+    if (@available(iOS 11.0, *)) {
+        if ([_playerItem respondsToSelector:@selector(setVideoApertureMode:)]) {
             _playerItem.videoApertureMode = AVVideoApertureModeProductionAperture;
         }
     }

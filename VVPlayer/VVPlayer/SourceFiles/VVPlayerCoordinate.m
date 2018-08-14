@@ -88,7 +88,6 @@
         [self recordVideoPlayCurrentDuration];
         [self _vvDestoryCurrentPlayer];
         [self resetCoordinateProperts];
-        [[UIApplication sharedApplication] endReceivingRemoteControlEvents];
     }
     [self removePlayerViewFromSuperView];
 }
@@ -265,8 +264,6 @@
     }else{
         [self play];
     }
-    
-    [[UIApplication sharedApplication] beginReceivingRemoteControlEvents];
 }
 
 - (void)recordVideoPlayCurrentDuration{
